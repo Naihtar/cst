@@ -15,7 +15,7 @@ where
     F: Fn(&[Task], &str) -> Result<(), Err>,
 {
     if tasks.is_empty() {
-        return Err(IOErr::EmptyExport)?;
+        Err(IOErr::EmptyExport)?;
     }
     let path = resolve_output_path(output, format)?;
     let progress = Prog::new();

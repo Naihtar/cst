@@ -21,7 +21,7 @@ pub fn import_csv(path: &str) -> Result<Vec<TaskBuilder>, Err> {
         .from_path(path)?;
     let headers = reader.headers()?;
     if headers.get(0) != Some("information") {
-        return Err(IOErr::MissingField("information".to_string()))?;
+        Err(IOErr::MissingField("information".to_string()))?;
     }
     reader
         .records()

@@ -25,8 +25,8 @@ fn build_markdown(tasks: &[Task]) -> String {
         .iter()
         .map(|task| {
             format!(
-                "| {} | {} | {} | {} |",
-                format!("{:03}", task.id()),
+                "| {:03} | {} | {} | {} |",
+                task.id(),
                 task.information(),
                 priority_to_str(task.priority()),
                 status_to_str(task.status()),
