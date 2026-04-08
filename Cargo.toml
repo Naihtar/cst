@@ -1,0 +1,25 @@
+[package]
+name = "cst"
+version = "1.0.0"
+edition = "2024"
+description = "A fast task manager for the terminal"
+authors = ["Naihtar"]
+repository = "https://github.com/Naihtar/cst"
+license = "GPL-3.0"
+
+[dependencies]
+csv = "1.4.0"
+dirs = "6.0.0"
+dotenvy = "0.15.7"
+rusqlite = { version = "0.39.0", features = ["bundled"] }
+rust-embed = "8.11.0"
+rust_xlsxwriter = "0.94.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+serde_yaml = "0.9.34"
+terminal_size = "0.4.4"
+thiserror = "2.0.18"
+toml = { version = "1.1.2", features = ["preserve_order"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"

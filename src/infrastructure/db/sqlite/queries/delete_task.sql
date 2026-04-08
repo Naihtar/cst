@@ -1,0 +1,3 @@
+DELETE FROM tasks
+WHERE id = :id
+RETURNING id;

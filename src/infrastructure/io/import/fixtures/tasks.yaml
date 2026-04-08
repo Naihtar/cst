@@ -1,0 +1,12 @@
+- information: Crear API REST
+  priority: high
+  status: todo
+- information: Documentar endpoints
+  priority: medium
+  status: in-progress
+- information: Testear base de datos
+  priority: urgent
+  status: blocked
+- information: Configurar backups
+  priority: low
+  status: done

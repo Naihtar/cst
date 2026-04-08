@@ -1,0 +1,19 @@
+[[tasks]]
+information = "Crear API REST"
+priority = "high"
+status = "todo"
+
+[[tasks]]
+information = "Documentar endpoints"
+priority = "medium"
+status = "in-progress"
+
+[[tasks]]
+information = "Testear base de datos"
+priority = "urgent"
+status = "blocked"
+
+[[tasks]]
+information = "Configurar backups"
+priority = "low"
+status = "done"
