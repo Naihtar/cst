@@ -1,6 +1,6 @@
 [package]
 name = "cst"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"
 description = "A fast task manager for the terminal"
 authors = ["Naihtar"]
