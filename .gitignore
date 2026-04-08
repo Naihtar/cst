@@ -5,3 +5,13 @@
 *.csv.*
 .env
 .env.*
+.json
+.json.*
+.toml
+.toml.*
+.yaml
+.yaml.*
+!src/infrastructure/io/import/fixtures/*.csv
+!src/infrastructure/io/import/fixtures/*.json
+!src/infrastructure/io/import/fixtures/*.toml
+!src/infrastructure/io/import/fixtures/*.yaml
