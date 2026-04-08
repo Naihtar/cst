@@ -81,7 +81,7 @@ dependencies = [
 
 [[package]]
 name = "cst"
-version = "1.0.0"
+version = "1.0.2"
 dependencies = [
  "csv",
  "dirs",

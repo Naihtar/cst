@@ -3,14 +3,16 @@ use crate::prelude::{
 };
 
 /// Returns the formatted version string with author, repository, and license info.
+/// Returns the formatted version string with author, repository, and license info.
 pub fn format_version() -> String {
     format!(
-        "{title} v{version}{reset}\n\
+        "{cyan}{title}{reset} v{version}{reset}\n\
          - {desc}{reset}\n\
          - {white}{label_author}{reset}: {authors}\n\
          - {white}{label_repo}{reset}: {repo}\n\
          - {white}{label_license}{reset}: {license}",
-        title = format!("{}{}", CYAN, Store::t("help.title")),
+        cyan = CYAN,
+        title = Store::t("help.title"),
         version = env!("CARGO_PKG_VERSION"),
         desc = env!("CARGO_PKG_DESCRIPTION"),
         authors = env!("CARGO_PKG_AUTHORS"),

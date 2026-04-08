@@ -65,7 +65,7 @@ impl Repository for SqliteTaskRepository {
     fn read_by_id(&self, id: i64) -> Result<Option<Task>, Err> {
         self.conn
             .prepare(SELECT_TASK_BY_ID)?
-            .query_and_then(named_params! { ":id": id }, |row| row_to_task(row))?
+            .query_and_then(named_params! { ":id": id }, row_to_task)?
             .next()
             .transpose()
     }
@@ -79,7 +79,7 @@ impl Repository for SqliteTaskRepository {
                     ":sort_by": sort.field.as_ref(),
                     ":sort_order": sort.order,
                 },
-                |row| row_to_task(row),
+                row_to_task,
             )?
             .collect()
     }

@@ -11,10 +11,10 @@ pub fn export_excel(tasks: &[Task], output: Option<&str>) -> Result<(usize, Stri
 fn write_excel(tasks: &[Task], path: &str) -> Result<(), Err> {
     let mut workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
-    worksheet.write_string(0, 0, &Store::t("table.id"))?;
-    worksheet.write_string(0, 1, &Store::t("table.task"))?;
-    worksheet.write_string(0, 2, &Store::t("table.priority"))?;
-    worksheet.write_string(0, 3, &Store::t("table.status"))?;
+    worksheet.write_string(0, 0, Store::t("table.id"))?;
+    worksheet.write_string(0, 1, Store::t("table.task"))?;
+    worksheet.write_string(0, 2, Store::t("table.priority"))?;
+    worksheet.write_string(0, 3, Store::t("table.status"))?;
     for (i, task) in tasks.iter().enumerate() {
         let row = (i + 1) as u32;
         worksheet.write_number(row, 0, task.id() as f64)?;

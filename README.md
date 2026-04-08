@@ -1,8 +1,9 @@
 # CST — Command-line Task Manager
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](https://github.com/Naihtar/cst)
+[![Version](https://img.shields.io/github/v/tag/Naihtar/cst?label=version&style=flat-square)](https://github.com/Naihtar/cst/releases)
 [![Rust](https://img.shields.io/badge/rust-2024_edition-orange?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/license-GPL--v3-green?style=flat-square)](LICENSE)
+[![CI](https://github.com/Naihtar/cst/actions/workflows/CI.yml/badge.svg)](https://github.com/Naihtar/cst/actions)
 
 > A fast, lightweight task manager for the terminal — built in Rust.
 

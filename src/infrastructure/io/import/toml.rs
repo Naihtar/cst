@@ -28,7 +28,7 @@ pub fn import_toml(path: &str) -> Result<Vec<Builder>, Err> {
 /// Returns an error if `information` is blank.
 fn parse_record(record: &TaskRecord) -> Result<Builder, Err> {
     if record.information.trim().is_empty() {
-        return Err(IOErr::MissingField("information".to_string()))?;
+        Err(IOErr::MissingField("information".to_string()))?;
     }
     Ok(Builder::new()
         .information(record.information.clone())

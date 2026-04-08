@@ -14,7 +14,7 @@ pub fn handle_version() -> Result<Output, Err> {
 pub fn handle_config(command: CfgCmd) -> Result<Output, Err> {
     let settings = Store::get()?;
     match command {
-        CfgCmd::Show => Ok(Output::Message(config_msg(&settings))),
+        CfgCmd::Show => Ok(Output::Message(config_msg(settings))),
         CfgCmd::SetLanguage(lang) => Store::save(&settings.db_path, &lang).map(|_| Output::Success),
         CfgCmd::SetDB(db) => Store::save(&db, settings.language.as_str()).map(|_| Output::Success),
     }
