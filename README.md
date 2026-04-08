@@ -1,9 +1,12 @@
-# CST — Command-line Task Manager
+# CST — Command-line Simple Task
 
 [![Version](https://img.shields.io/github/v/tag/Naihtar/cst?label=version&style=flat-square)](https://github.com/Naihtar/cst/releases)
-[![Rust](https://img.shields.io/badge/rust-2024_edition-orange?style=flat-square&logo=rust)](https://www.rust-lang.org)
-[![License](https://img.shields.io/badge/license-GPL--v3-green?style=flat-square)](LICENSE)
-[![CI](https://github.com/Naihtar/cst/actions/workflows/CI.yml/badge.svg)](https://github.com/Naihtar/cst/actions)
+[![CI](https://github.com/Naihtar/cst/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/Naihtar/cst/actions)
+[![Rust Edition](https://img.shields.io/badge/rust-2024-orange?style=flat-square&logo=rust)](https://www.rust-lang.org)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey?style=flat-square)](https://github.com/Naihtar/cst)
+[![License](https://img.shields.io/badge/license-GPL--v3-blue?style=flat-square)](LICENSE)
+
+---
 
 > A fast, lightweight task manager for the terminal — built in Rust.
 
@@ -25,20 +28,47 @@
 
 ---
 
+## OS Support
+
+Thanks to our CI/CD pipeline, every commit is automatically tested and verified on:
+
+| OS | Status |
+|:---|:---:|
+| **Linux** | ✅ |
+| **macOS** | ✅ |
+| **Windows** | ✅ |
+
+---
+
 ## Installation
 
-**Linux**
+Since CST is written in Rust, you can install it easily using `cargo`:
 
-### Step by step
+### From source
 ```bash
 git clone https://github.com/Naihtar/cst
 cd cst
 cargo install --path .
 ```
 
-**macOS** — *(TODO: untested — no macOS environment available)*
+---
 
-**Windows** — *(TODO: untested — no Windows environment available)*
+## Uninstallation
+
+To completely remove **CST** from your system, follow these steps:
+
+**1. Remove the binary** 
+```bash
+cargo uninstall cst
+```
+
+**2. Clean up data and configuration** 
+> Since paths vary depending on the Operating System, run `cst -C` before uninstalling to see your current paths. Then, manually remove the displayed directories.
+
+Typically, these are located at:
+* **Linux:** `~/.config/cst/`
+* **macOS:** `~/Library/Application Support/cst/`
+* **Windows:** `%APPDATA%\<Author>\cst\`
 
 ---
 
@@ -184,19 +214,14 @@ cst -Z
 
 ## Configuration
 
-CST stores its configuration in the OS config directory:
-
-| OS | Path |
-|----|------|
-| Linux | `~/.config/cst/.env` |
-| macOS | (TODO: untested — no macOS environment available)|
-| Windows | (TODO: untested — no Windows environment available) |
-
-```env
-DB_PATH=/your/custom/path/to/tasks.db
-# Interface language (en, es)
-LANGUAGE=en
+CST uses a `.env` file to manage its settings. Since paths are resolved dynamically based on your Operating System, you can check your specific configuration and database locations at any time by running: 
+```bash
+cst -C
 ```
+**Available Settings:**
+
+* **DB_PATH:** Path to the SQLite database file.
+* **LANGUAGE:** Interface language (`en` / `es`).
 ---
 
 ## Supported Formats
@@ -233,7 +258,7 @@ LANGUAGE=en
 
 ## Roadmap
 
-- [ ] **Style configuration** — custom colors and formatting, with compatibility for Windows terminals
+- [ ] **Style configuration** — custom colors and formatting, with compatibility for Windows terminals?
 
 ---
 
@@ -245,20 +270,6 @@ This project was developed with AI assistance ([Claude](https://claude.ai)) in t
 - **Testing** — design and implementation of the test suite
 - **Documentation** — `rustdoc` comments and README
 - **Code review** — Rust conventions, clean architecture guidance, and API design
-
----
-
-## Uninstallation
-
-**Linux**
-```bash
-cargo uninstall cst
-rm -rf ~/.config/cst/
-```
-
-**macOS** — *(TODO: untested — no macOS environment available)*
-
-**Windows** — *(TODO: untested — no Windows environment available)*
 
 ---
 
