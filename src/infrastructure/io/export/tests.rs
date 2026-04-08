@@ -71,10 +71,8 @@ mod tests {
     fn export_csv_empty_tasks() {
         setup();
         let path = temp_path("empty.csv");
-        let (count, _, _) = to_csv(&[], Some(&path)).unwrap();
-        assert_eq!(count, 0);
-        let content = std::fs::read_to_string(&path).unwrap();
-        assert!(content.contains("information,priority,status"));
+        let result = to_csv(&[], Some(&path));
+        assert!(result.is_err());
     }
 
     // ── JSON ──────────────────────────────────────────────────────────────────
@@ -116,11 +114,8 @@ mod tests {
     fn export_json_empty_tasks() {
         setup();
         let path = temp_path("empty.json");
-        let (count, _, _) = to_json(&[], Some(&path)).unwrap();
-        assert_eq!(count, 0);
-        let content = std::fs::read_to_string(&path).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(&content).unwrap();
-        assert_eq!(parsed.as_array().unwrap().len(), 0);
+        let result = to_json(&[], Some(&path));
+        assert!(result.is_err());
     }
 
     // ── YAML ──────────────────────────────────────────────────────────────────
@@ -220,8 +215,8 @@ mod tests {
     fn export_markdown_empty_tasks() {
         setup();
         let path = temp_path("empty.md");
-        let (count, _, _) = to_md(&[], Some(&path)).unwrap();
-        assert_eq!(count, 0);
+        let result = to_md(&[], Some(&path));
+        assert!(result.is_err());
     }
 
     // ── Round-trip CSV ────────────────────────────────────────────────────────
