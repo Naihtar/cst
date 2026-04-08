@@ -1,0 +1,5 @@
+information,priority,status
+Crear API REST,high,todo
+Documentar endpoints,medium,in-progress
+Testear base de datos,urgent,blocked
+Configurar backups,low,done
