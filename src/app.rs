@@ -1,12 +1,22 @@
-use crate::prelude::{
-    Cmd, Err, Handler, Output, Parser, Service, SqliteTR, Store, cancelled_msg, config, done_msg,
-    err_msg, help, paged_msg, tasks_msg, version,
+use crate::{
+    infrastructure::cli::{
+        config_handler::{handle_config, handle_help, handle_version},
+        ui::messages::{
+            error::format_error,
+            export::{format_paged_tasks, format_tasks},
+            task::{format_cancelled_msg, format_done},
+        },
+    },
+    prelude::{
+        CSTError, CliHandler, CliOutput, CliParser, Settings, SqliteTaskRepository, TaskCommand,
+        TaskService,
+    },
 };
 
 /// Entry point for the application. Handles global error reporting and process exit.
 pub fn run() {
     if let Err(e) = run_inner() {
-        eprintln!("{}", err_msg(&e));
+        eprintln!("{}", format_error(&e));
         std::process::exit(1);
     }
 }
@@ -14,26 +24,26 @@ pub fn run() {
 /// Orchestrates settings loading, command parsing, and execution.
 ///
 /// Returns a [`Result`] to allow the caller to handle top-level errors.
-fn run_inner() -> Result<(), Err> {
+fn run_inner() -> Result<(), CSTError> {
     // Ensure configuration is loaded before any operation
-    Store::load()?;
+    Settings::load()?;
 
     // Parse arguments and handle potential confirmation prompts (e.g., --force)
-    let command = Parser::new().parse()?.ensure_confirmation()?;
+    let command = CliParser::new().parse()?.ensure_confirmation()?;
 
     // Route commands. Built-in CLI commands are handled separately from
     // domain operations that require a database connection.
     let output = match command {
-        Cmd::Help => help()?,
-        Cmd::Version => version()?,
-        Cmd::Config(cfg) => config(cfg)?,
+        TaskCommand::Help => handle_help()?,
+        TaskCommand::Version => handle_version()?,
+        TaskCommand::Config(cfg) => handle_config(cfg)?,
         _ => {
-            let settings = Store::get()?;
+            let settings = Settings::get()?;
 
             // Initialize infrastructure and application layers
-            let repo = SqliteTR::new(&settings.db_path)?;
-            let service = Service::new(repo);
-            let handler = Handler::new(service);
+            let repo = SqliteTaskRepository::new(&settings.db_path)?;
+            let service = TaskService::new(repo);
+            let handler = CliHandler::new(service);
 
             handler.handle(command)?
         }
@@ -41,25 +51,25 @@ fn run_inner() -> Result<(), Err> {
 
     // Render the output of the command to the standard output
     match output {
-        Output::Tasks(tasks) => {
-            println!("{}", tasks_msg(&tasks));
+        CliOutput::Tasks(tasks) => {
+            println!("{}", format_tasks(&tasks));
         }
-        Output::PagedTasks {
+        CliOutput::PagedTasks {
             tasks,
             page,
             page_size,
             total,
         } => {
-            println!("{}", paged_msg(&tasks, page, page_size, total));
+            println!("{}", format_paged_tasks(&tasks, page, page_size, total));
         }
-        Output::Message(msg) => {
+        CliOutput::Message(msg) => {
             println!("{}", msg);
         }
-        Output::Success => {
-            println!("{}", done_msg());
+        CliOutput::Success => {
+            println!("{}", format_done());
         }
-        Output::Cancelled => {
-            println!("{}", cancelled_msg());
+        CliOutput::Cancelled => {
+            println!("{}", format_cancelled_msg());
         }
     }
 
