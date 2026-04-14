@@ -1,4 +1,4 @@
-use crate::prelude::{DomErr, Err, Priority, Status};
+use crate::prelude::{CSTError, DomErr, Priority, Status};
 
 /// Data required to create a new task (no ID yet).
 #[derive(Debug, PartialEq)]
@@ -39,7 +39,7 @@ impl Task {
     }
 }
 
-/// Builder for constructing [`NewTask`] or [`Task`] with validation.
+/// TaskBuilder for constructing [`NewTask`] or [`Task`] with validation.
 pub struct TaskBuilder {
     information: String,
     id: Option<i64>,
@@ -120,7 +120,7 @@ impl TaskBuilder {
     }
 
     /// Builds a [`NewTask`]. Fails if the description is empty.
-    pub fn build(self) -> Result<NewTask, Err> {
+    pub fn build(self) -> Result<NewTask, CSTError> {
         Self::validate_information(&self.information)?;
         Ok(NewTask {
             information: self.information,
@@ -130,7 +130,7 @@ impl TaskBuilder {
     }
 
     /// Builds a [`Task`] with an ID. Fails if the description is empty or no ID was set.
-    pub fn build_with_id(self) -> Result<Task, Err> {
+    pub fn build_with_id(self) -> Result<Task, CSTError> {
         Self::validate_information(&self.information)?;
         Ok(Task {
             id: self.id.ok_or(DomErr::InvalidID)?,

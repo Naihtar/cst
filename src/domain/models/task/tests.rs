@@ -3,7 +3,7 @@ mod tests {
     // use crate::{
     //     config::settings::Settings,
     //     domain::models::task::{
-    //         entity::Builder,
+    //         entity::TaskBuilder,
     //         filter::{DEFAULT_PAGE_SIZE, Filter, Sort, SortField, SortOrder},
     //         types::{Priority, Status},
     //     },
@@ -11,20 +11,20 @@ mod tests {
     // };
 
     use crate::prelude::{
-        Builder, DEFAULT_PAGE_SIZE, DomErr, Err, Filter, Priority, Sort, SortField, SortOrder,
-        Status, Store,
+        CSTError, DEFAULT_PAGE_SIZE, DomErr, Filter, Priority, Settings, Sort, SortField,
+        SortOrder, Status, TaskBuilder,
     };
 
     fn setup() {
-        Store::init_for_tests();
+        Settings::init_for_tests();
     }
 
-    // ── Builder ───────────────────────────────────────────────────────────
+    // ── TaskBuilder ───────────────────────────────────────────────────────────
 
     #[test]
     fn task_builder_builds_with_defaults() {
         setup();
-        let task = Builder::new()
+        let task = TaskBuilder::new()
             .information("Test task".to_string())
             .build()
             .unwrap();
@@ -36,7 +36,7 @@ mod tests {
     #[test]
     fn task_builder_builds_with_priority_and_status() {
         setup();
-        let task = Builder::new()
+        let task = TaskBuilder::new()
             .information("Test task".to_string())
             .priority(Some(Priority::Urgent))
             .status(Some(Status::InProgress))
@@ -49,29 +49,29 @@ mod tests {
     #[test]
     fn task_builder_fails_with_empty_information() {
         setup();
-        let result = Builder::new().information("".to_string()).build();
+        let result = TaskBuilder::new().information("".to_string()).build();
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            Err::Domain(DomErr::EmptyTaskInformation)
+            CSTError::Domain(DomErr::EmptyTaskInformation)
         ));
     }
 
     #[test]
     fn task_builder_fails_with_whitespace_information() {
         setup();
-        let result = Builder::new().information("   ".to_string()).build();
+        let result = TaskBuilder::new().information("   ".to_string()).build();
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            Err::Domain(DomErr::EmptyTaskInformation)
+            CSTError::Domain(DomErr::EmptyTaskInformation)
         ));
     }
 
     #[test]
     fn task_builder_with_id_builds_correctly() {
         setup();
-        let task = Builder::new()
+        let task = TaskBuilder::new()
             .id(42)
             .information("Test task".to_string())
             .priority(Some(Priority::High))
@@ -87,25 +87,25 @@ mod tests {
     #[test]
     fn task_builder_with_id_fails_without_id() {
         setup();
-        let result = Builder::new()
+        let result = TaskBuilder::new()
             .information("Test task".to_string())
             .build_with_id();
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            Err::Domain(DomErr::InvalidID)
+            CSTError::Domain(DomErr::InvalidID)
         ));
     }
 
     #[test]
     fn task_builder_information_update_replaces_value() {
         setup();
-        let original = Builder::new()
+        let original = TaskBuilder::new()
             .id(1)
             .information("Original".to_string())
             .build_with_id()
             .unwrap();
-        let updated = Builder::from_task(&original)
+        let updated = TaskBuilder::from_task(&original)
             .information_update(Some("Updated".to_string()))
             .build_with_id()
             .unwrap();
@@ -115,12 +115,12 @@ mod tests {
     #[test]
     fn task_builder_information_update_keeps_original_when_none() {
         setup();
-        let original = Builder::new()
+        let original = TaskBuilder::new()
             .id(1)
             .information("Original".to_string())
             .build_with_id()
             .unwrap();
-        let updated = Builder::from_task(&original)
+        let updated = TaskBuilder::from_task(&original)
             .information_update(None)
             .build_with_id()
             .unwrap();
@@ -130,14 +130,14 @@ mod tests {
     #[test]
     fn task_builder_from_task_preserves_all_fields() {
         setup();
-        let original = Builder::new()
+        let original = TaskBuilder::new()
             .id(7)
             .information("Original".to_string())
             .priority(Some(Priority::High))
             .status(Some(Status::Blocked))
             .build_with_id()
             .unwrap();
-        let copy = Builder::from_task(&original).build_with_id().unwrap();
+        let copy = TaskBuilder::from_task(&original).build_with_id().unwrap();
         assert_eq!(copy.id(), original.id());
         assert_eq!(copy.information(), original.information());
         assert_eq!(copy.priority(), original.priority());
