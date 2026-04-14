@@ -17,6 +17,8 @@ pub(crate) mod config {
     //! Application configuration and language settings.
     pub(crate) mod language;
     pub(crate) mod settings;
+    #[cfg(test)]
+    pub mod tests;
 }
 
 pub(crate) mod domain {
