@@ -1,12 +1,18 @@
-use crate::prelude::{Err, FileFormat, Task, export, priority_to_str, status_to_str};
+use crate::{
+    infrastructure::io::{
+        export::common::export,
+        mappers::{priority_to_str, status_to_str},
+    },
+    prelude::{CSTError, FileFormat, Task},
+};
 
 /// Exports tasks to a pretty-printed JSON file at the resolved output path.
-pub fn export_json(tasks: &[Task], output: Option<&str>) -> Result<(usize, String, f64), Err> {
+pub fn export_json(tasks: &[Task], output: Option<&str>) -> Result<(usize, String, f64), CSTError> {
     export(tasks, output, FileFormat::Json, write_json)
 }
 
 /// Serializes tasks to a JSON array and writes it to `path`.
-fn write_json(tasks: &[Task], path: &str) -> Result<(), Err> {
+fn write_json(tasks: &[Task], path: &str) -> Result<(), CSTError> {
     let records: Vec<_> = tasks
         .iter()
         .map(|task| {

@@ -1,13 +1,18 @@
-use crate::prelude::{
-    Store, Task, list_view, ok_msg, {CYAN, RESET},
+use crate::{
+    infrastructure::cli::ui::{
+        colors::{CYAN, RESET},
+        format_list::format_task_list,
+        messages::error::format_success,
+    },
+    prelude::{Settings, Task},
 };
 
 /// Returns a success message with task count, elapsed time, and output path.
 pub fn format_export(count: usize, path: &str, elapsed: f64) -> String {
-    ok_msg(&format!(
+    format_success(&format!(
         "{} {} {:.2}s → {}",
         count,
-        Store::t("ui.exported"),
+        Settings::t("ui.exported"),
         elapsed,
         path
     ))
@@ -19,7 +24,7 @@ pub fn format_pagination(page: i64, page_size: i64, total: i64) -> String {
     format!(
         "{}{} {} / {}{}",
         CYAN,
-        Store::t("ui.page"),
+        Settings::t("ui.page"),
         page + 1,
         total_pages,
         RESET
@@ -28,12 +33,12 @@ pub fn format_pagination(page: i64, page_size: i64, total: i64) -> String {
 
 /// Formats a task list for display.
 pub fn format_tasks(tasks: &[Task]) -> String {
-    list_view(tasks)
+    format_task_list(tasks)
 }
 
 /// Formats a paged task list, appending the pagination indicator if non-empty.
 pub fn format_paged_tasks(tasks: &[Task], page: i64, page_size: i64, total: i64) -> String {
-    let mut parts = vec![list_view(tasks)];
+    let mut parts = vec![format_task_list(tasks)];
     if !tasks.is_empty() {
         parts.push(format_pagination(page, page_size, total));
     }

@@ -1,14 +1,13 @@
 use crate::{
     domain::models::task::entity::TaskBuilder,
     infrastructure::io::mappers::{str_to_priority, str_to_status},
+    prelude::{CSTError, IOErr},
 };
-
-use crate::prelude::{Err, IOErr};
 
 /// Imports tasks from a CSV file, auto-detecting `,` or `;` as delimiter.
 ///
 /// The first column must be `information`. `priority` and `status` are optional.
-pub fn import_csv(path: &str) -> Result<Vec<TaskBuilder>, Err> {
+pub fn import_csv(path: &str) -> Result<Vec<TaskBuilder>, CSTError> {
     let content = std::fs::read_to_string(path)?;
     let mut lines = content.lines();
     lines.next();
@@ -30,7 +29,7 @@ pub fn import_csv(path: &str) -> Result<Vec<TaskBuilder>, Err> {
 }
 
 /// Reads the first line of the file to detect whether it uses `;` or `,`.
-fn detect_delimiter(path: &str) -> Result<u8, Err> {
+fn detect_delimiter(path: &str) -> Result<u8, CSTError> {
     let content = std::fs::read_to_string(path)?;
     Ok(match content.lines().next() {
         Some(line) if line.contains(';') => b';',
@@ -39,7 +38,7 @@ fn detect_delimiter(path: &str) -> Result<u8, Err> {
 }
 
 /// Parses a single CSV record into a [`TaskBuilder`].
-fn parse_record(record: &csv::StringRecord) -> Result<TaskBuilder, Err> {
+fn parse_record(record: &csv::StringRecord) -> Result<TaskBuilder, CSTError> {
     let information = record
         .get(0)
         .ok_or(IOErr::MissingField("information".to_string()))?;

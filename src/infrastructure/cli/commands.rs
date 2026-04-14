@@ -1,6 +1,12 @@
-use crate::prelude::{
-    Decision, Err, Filter, Mode, Priority, Sort, Status, prompt_clear, prompt_import,
-    prompt_remove, prompt_remove_many, prompt_restore,
+use crate::{
+    infrastructure::cli::{
+        interactor::{
+            ask_confirmation_clear, ask_confirmation_import, ask_confirmation_remove,
+            ask_confirmation_remove_many, ask_confirmation_restore,
+        },
+        ui::messages::confirm::Decision,
+    },
+    prelude::{CSTError, Filter, ImportMode, Priority, Sort, Status},
 };
 
 /// All commands the CLI can dispatch.
@@ -49,7 +55,7 @@ pub enum TaskCommand {
     Config(ConfigCommand),
     Import {
         path: String,
-        mode: Mode,
+        mode: ImportMode,
         confirmed: Option<Decision>,
     },
     ExportCSV {
@@ -72,17 +78,17 @@ pub enum TaskCommand {
     },
     ImportJson {
         path: String,
-        mode: Mode,
+        mode: ImportMode,
         confirmed: Option<Decision>,
     },
     ImportYaml {
         path: String,
-        mode: Mode,
+        mode: ImportMode,
         confirmed: Option<Decision>,
     },
     ImportToml {
         path: String,
-        mode: Mode,
+        mode: ImportMode,
         confirmed: Option<Decision>,
     },
     Undo,
@@ -102,17 +108,17 @@ impl TaskCommand {
     ///
     /// Commands that already carry a [`Decision`] or don't require one are
     /// returned unchanged.
-    pub fn ensure_confirmation(self) -> Result<Self, Err> {
+    pub fn ensure_confirmation(self) -> Result<Self, CSTError> {
         match self {
             TaskCommand::Import {
                 path,
                 mode,
                 confirmed: None,
-            } => confirm_import(
+            } => format_confirm_import(
                 path,
                 mode,
-                prompt_import,
-                prompt_restore,
+                ask_confirmation_import,
+                ask_confirmation_restore,
                 |path, mode, confirmed| TaskCommand::Import {
                     path,
                     mode,
@@ -124,11 +130,11 @@ impl TaskCommand {
                 path,
                 mode,
                 confirmed: None,
-            } => confirm_import(
+            } => format_confirm_import(
                 path,
                 mode,
-                prompt_import,
-                prompt_restore,
+                ask_confirmation_import,
+                ask_confirmation_restore,
                 |path, mode, confirmed| TaskCommand::ImportJson {
                     path,
                     mode,
@@ -140,11 +146,11 @@ impl TaskCommand {
                 path,
                 mode,
                 confirmed: None,
-            } => confirm_import(
+            } => format_confirm_import(
                 path,
                 mode,
-                prompt_import,
-                prompt_restore,
+                ask_confirmation_import,
+                ask_confirmation_restore,
                 |path, mode, confirmed| TaskCommand::ImportYaml {
                     path,
                     mode,
@@ -156,11 +162,11 @@ impl TaskCommand {
                 path,
                 mode,
                 confirmed: None,
-            } => confirm_import(
+            } => format_confirm_import(
                 path,
                 mode,
-                prompt_import,
-                prompt_restore,
+                ask_confirmation_import,
+                ask_confirmation_restore,
                 |path, mode, confirmed| TaskCommand::ImportToml {
                     path,
                     mode,
@@ -171,7 +177,7 @@ impl TaskCommand {
             TaskCommand::Remove {
                 id,
                 confirmed: None,
-            } => prompt_remove(id).map(|d| TaskCommand::Remove {
+            } => ask_confirmation_remove(id).map(|d| TaskCommand::Remove {
                 id,
                 confirmed: Some(d),
             }),
@@ -179,13 +185,13 @@ impl TaskCommand {
             TaskCommand::RemoveMany {
                 ids,
                 confirmed: None,
-            } => prompt_remove_many(&ids).map(|d| TaskCommand::RemoveMany {
+            } => ask_confirmation_remove_many(&ids).map(|d| TaskCommand::RemoveMany {
                 ids,
                 confirmed: Some(d),
             }),
 
             TaskCommand::Clear { confirmed: None } => {
-                prompt_clear().map(|d| TaskCommand::Clear { confirmed: Some(d) })
+                ask_confirmation_clear().map(|d| TaskCommand::Clear { confirmed: Some(d) })
             }
 
             _ => Ok(self),
@@ -196,19 +202,21 @@ impl TaskCommand {
 /// Asks for confirmation based on the import mode and wraps the result in a command.
 ///
 /// `DryRun` skips confirmation entirely.
-fn confirm_import<F, F1: Fn(&str) -> Result<Decision, Err>>(
+fn format_confirm_import<F, F1: Fn(&str) -> Result<Decision, CSTError>>(
     path: String,
-    mode: Mode,
+    mode: ImportMode,
     ask_append: F1,
-    ask_restore: impl Fn(&str) -> Result<Decision, Err>,
+    ask_restore: impl Fn(&str) -> Result<Decision, CSTError>,
     build: F,
-) -> Result<TaskCommand, Err>
+) -> Result<TaskCommand, CSTError>
 where
-    F: Fn(String, Mode, Option<Decision>) -> TaskCommand,
+    F: Fn(String, ImportMode, Option<Decision>) -> TaskCommand,
 {
     match mode {
-        Mode::Append => ask_append(&path).map(|d| build(path, Mode::Append, Some(d))),
-        Mode::Restore => ask_restore(&path).map(|d| build(path, Mode::Restore, Some(d))),
-        Mode::DryRun => Ok(build(path, Mode::DryRun, None)),
+        ImportMode::Append => ask_append(&path).map(|d| build(path, ImportMode::Append, Some(d))),
+        ImportMode::Restore => {
+            ask_restore(&path).map(|d| build(path, ImportMode::Restore, Some(d)))
+        }
+        ImportMode::DryRun => Ok(build(path, ImportMode::DryRun, None)),
     }
 }

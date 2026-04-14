@@ -1,25 +1,29 @@
-use crate::prelude::{
-    ID, PRIORITY, STATUS, Store, Task, task_view, task_width, {CYAN, RESET},
+use crate::{
+    infrastructure::cli::ui::{
+        colors::{CYAN, RESET},
+        format_task::{COL_ID, COL_PRIORITY, COL_STATUS, col_task, format_task},
+    },
+    prelude::{Settings, Task},
 };
 
 /// Builds the localized column header row.
 fn build_header() -> String {
-    let col_task = task_width();
+    let col_task = col_task();
     format!(
-        "{}{:<ID$} | {:<col_task$} | {:<PRIORITY$} | {:<STATUS$}{}",
+        "{}{:<COL_ID$} | {:<col_task$} | {:<COL_PRIORITY$} | {:<COL_STATUS$}{}",
         CYAN,
-        Store::t("table.id"),
-        Store::t("table.task"),
-        Store::t("table.priority"),
-        Store::t("table.status"),
+        Settings::t("table.id"),
+        Settings::t("table.task"),
+        Settings::t("table.priority"),
+        Settings::t("table.status"),
         RESET
     )
 }
 
 /// Builds the separator line sized to match the table width.
 fn build_separator() -> String {
-    let col_task = task_width();
-    let width = ID + 3 + col_task + 3 + PRIORITY + 3 + STATUS + 3;
+    let col_task = col_task();
+    let width = COL_ID + 3 + col_task + 3 + COL_PRIORITY + 3 + COL_STATUS + 3;
     format!("{}{}{}", CYAN, "-".repeat(width), RESET)
 }
 
@@ -28,11 +32,11 @@ fn build_separator() -> String {
 /// Returns a "no tasks found" message if the slice is empty.
 pub fn format_task_list(tasks: &[Task]) -> String {
     if tasks.is_empty() {
-        return CYAN.to_string() + &Store::t("ui.no_tasks_found") + RESET;
+        return CYAN.to_string() + &Settings::t("ui.no_tasks_found") + RESET;
     }
     [build_header(), build_separator()]
         .into_iter()
-        .chain(tasks.iter().map(task_view))
+        .chain(tasks.iter().map(format_task))
         .collect::<Vec<_>>()
         .join("\n")
 }

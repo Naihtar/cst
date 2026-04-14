@@ -1,4 +1,10 @@
-use crate::prelude::{Err, FileFormat, IOErr, Task, export, priority_to_str, status_to_str};
+use crate::{
+    infrastructure::io::{
+        export::common::export,
+        mappers::{priority_to_str, status_to_str},
+    },
+    prelude::{CSTError, FileFormat, IOErr, Task},
+};
 
 use serde::Serialize;
 
@@ -18,12 +24,12 @@ struct Root<'a> {
 }
 
 /// Exports tasks to a TOML file at the resolved output path.
-pub fn export_toml(tasks: &[Task], output: Option<&str>) -> Result<(usize, String, f64), Err> {
+pub fn export_toml(tasks: &[Task], output: Option<&str>) -> Result<(usize, String, f64), CSTError> {
     export(tasks, output, FileFormat::Toml, write_toml)
 }
 
 /// Serializes tasks under a `[[tasks]]` array and writes it to `path`.
-fn write_toml(tasks: &[Task], path: &str) -> Result<(), Err> {
+fn write_toml(tasks: &[Task], path: &str) -> Result<(), CSTError> {
     let records: Vec<TaskRecord> = tasks
         .iter()
         .map(|task| TaskRecord {
