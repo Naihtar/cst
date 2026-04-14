@@ -1,7 +1,7 @@
 [
   { "information": "Crear API REST", "priority": "high", "status": "todo" },
   {
-    "information": "Documentar endpoints",
+    "information": "Documentar endpoints.",
     "priority": "medium",
     "status": "in-progress"
   },

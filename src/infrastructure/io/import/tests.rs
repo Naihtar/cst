@@ -31,7 +31,7 @@ mod tests {
         assert_eq!(tasks[0].priority, Priority::High);
         assert_eq!(tasks[0].status, Status::Todo);
 
-        assert_eq!(tasks[1].information, "Documentar endpoints");
+        assert_eq!(tasks[1].information, "Documentar endpoints.");
         assert_eq!(tasks[1].priority, Priority::Medium);
         assert_eq!(tasks[1].status, Status::InProgress);
 

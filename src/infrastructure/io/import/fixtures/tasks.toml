@@ -4,7 +4,7 @@ priority = "high"
 status = "todo"
 
 [[tasks]]
-information = "Documentar endpoints"
+information = "Documentar endpoints."
 priority = "medium"
 status = "in-progress"
 
