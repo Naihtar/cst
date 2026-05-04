@@ -1,4 +1,7 @@
-use crate::prelude::{Err, FileFormat, IOErr, Prog, Task, prompt_filename};
+use crate::{
+    infrastructure::io::interactor::ask_filename,
+    prelude::{CSTError, FileFormat, IOErr, Progress, Task},
+};
 
 use std::path::PathBuf;
 
@@ -10,15 +13,15 @@ pub fn export<F>(
     output: Option<&str>,
     format: FileFormat,
     write: F,
-) -> Result<(usize, String, f64), Err>
+) -> Result<(usize, String, f64), CSTError>
 where
-    F: Fn(&[Task], &str) -> Result<(), Err>,
+    F: Fn(&[Task], &str) -> Result<(), CSTError>,
 {
     if tasks.is_empty() {
         Err(IOErr::EmptyExport)?;
     }
     let path = resolve_output_path(output, format)?;
-    let progress = Prog::new();
+    let progress = Progress::new();
     write(tasks, &path)?;
     Ok((tasks.len(), path, progress.elapsed_secs()))
 }
@@ -27,11 +30,11 @@ where
 ///
 /// Uses `output` directly if it has a known extension, prompts within `output`
 /// as directory otherwise, or falls back to the OS documents directory.
-fn resolve_output_path(output: Option<&str>, format: FileFormat) -> Result<String, Err> {
+fn resolve_output_path(output: Option<&str>, format: FileFormat) -> Result<String, CSTError> {
     match output {
         Some(path) if has_known_extension(path) => Ok(path.to_string()),
-        Some(dir) => prompt_filename(format, &PathBuf::from(dir)),
-        None => prompt_filename(format, &default_dir()),
+        Some(dir) => ask_filename(format, &PathBuf::from(dir)),
+        None => ask_filename(format, &default_dir()),
     }
 }
 

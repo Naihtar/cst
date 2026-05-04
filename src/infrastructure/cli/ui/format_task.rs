@@ -1,5 +1,6 @@
-use crate::prelude::{
-    Priority, Status, Store, Task, {BRIGHT_RED, CYAN, GREEN, RED, RESET, WHITE, YELLOW},
+use crate::{
+    infrastructure::cli::ui::colors::*,
+    prelude::{Priority, Settings, Status, Task},
 };
 
 pub const COL_ID: usize = 6;
@@ -40,20 +41,20 @@ fn status_color(status: &Status) -> &'static str {
 /// Returns the localized display string for the given priority.
 fn format_priority(priority: &Priority) -> String {
     match priority {
-        Priority::Low => Store::t("table.priority_low"),
-        Priority::Medium => Store::t("table.priority_medium"),
-        Priority::High => Store::t("table.priority_high"),
-        Priority::Urgent => Store::t("table.priority_urgent"),
+        Priority::Low => Settings::t("table.priority_low"),
+        Priority::Medium => Settings::t("table.priority_medium"),
+        Priority::High => Settings::t("table.priority_high"),
+        Priority::Urgent => Settings::t("table.priority_urgent"),
     }
 }
 
 /// Returns the localized display string for the given status.
 fn format_status(status: &Status) -> String {
     match status {
-        Status::Todo => Store::t("table.status_todo"),
-        Status::InProgress => Store::t("table.status_in_progress"),
-        Status::Done => Store::t("table.status_done"),
-        Status::Blocked => Store::t("table.status_blocked"),
+        Status::Todo => Settings::t("table.status_todo"),
+        Status::InProgress => Settings::t("table.status_in_progress"),
+        Status::Done => Settings::t("table.status_done"),
+        Status::Blocked => Settings::t("table.status_blocked"),
     }
 }
 

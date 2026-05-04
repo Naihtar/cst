@@ -1,6 +1,9 @@
-use crate::prelude::{
-    CfgCmd, CliErr, DEFAULT_PAGE_SIZE, Decision, Err, Filter, Priority, Sort, SortField, SortOrder,
-    Status,
+use crate::{
+    infrastructure::cli::ui::messages::confirm::Decision,
+    prelude::{
+        CSTError, CliErr, ConfigCommand, DEFAULT_PAGE_SIZE, Filter, Priority, Sort, SortField,
+        SortOrder, Status,
+    },
 };
 
 /// Maps a priority shorthand character to a [`Priority`] variant.
@@ -55,10 +58,10 @@ pub fn char_to_sort_order(c: char) -> Option<SortOrder> {
 /// Maps a config shorthand character to a [`ConfigCommand`] skeleton.
 ///
 /// `l`=SetLanguage, `d`=SetDB.
-pub fn char_to_config(c: char) -> Option<CfgCmd> {
+pub fn char_to_config(c: char) -> Option<ConfigCommand> {
     match c {
-        'l' => Some(CfgCmd::SetLanguage(String::new())),
-        'd' => Some(CfgCmd::SetDB(String::new())),
+        'l' => Some(ConfigCommand::SetLanguage(String::new())),
+        'd' => Some(ConfigCommand::SetDB(String::new())),
         _ => None,
     }
 }
@@ -109,15 +112,15 @@ pub fn modifiers_to_filter(modifiers: &[char], word: Option<String>, page: i64) 
 }
 
 /// Parses a string as an `i64` task ID.
-pub fn parse_id(arg: &str) -> Result<i64, Err> {
+pub fn parse_id(arg: &str) -> Result<i64, CSTError> {
     arg.parse::<i64>()
-        .map_err(|_| Err::Cli(CliErr::InvalidIdFormat))
+        .map_err(|_| CSTError::Cli(CliErr::InvalidIdFormat))
 }
 
 /// Parses a confirmation string into a [`Decision`].
 ///
 /// Accepts `y/yes/s/si/sí` as Yes and `n/no` as No.
-pub fn accept(input: &str) -> Result<Decision, Err> {
+pub fn accept(input: &str) -> Result<Decision, CSTError> {
     match input.trim().to_ascii_lowercase().as_str() {
         "y" | "yes" | "s" | "si" | "sí" => Ok(Decision::Yes),
         "n" | "no" => Ok(Decision::No),
@@ -135,6 +138,6 @@ pub fn accept_flag(c: char) -> Option<Decision> {
 }
 
 /// Parses a comma-separated string of IDs into a `Vec<i64>`.
-pub fn parse_ids(arg: &str) -> Result<Vec<i64>, Err> {
+pub fn parse_ids(arg: &str) -> Result<Vec<i64>, CSTError> {
     arg.split(',').map(|s| parse_id(s.trim())).collect()
 }

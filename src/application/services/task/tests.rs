@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{Filter, Priority, Service, Sort, SqliteTR, Status, Store};
+    use crate::prelude::{
+        Filter, Priority, Settings, Sort, SqliteTaskRepository, Status, TaskService,
+    };
 
-    fn setup() -> Service<SqliteTR> {
-        Store::init_for_tests();
-        let repo = SqliteTR::new(":memory:").unwrap();
-        Service::new(repo)
+    fn setup() -> TaskService<SqliteTaskRepository> {
+        Settings::init_for_tests();
+        let repo = SqliteTaskRepository::new(":memory:").unwrap();
+        TaskService::new(repo)
     }
 
     // ── add_task ──────────────────────────────────────────────────────────────
@@ -176,7 +178,7 @@ mod tests {
             .add_task("Crear API REST".to_string(), None, None)
             .unwrap();
         service
-            .add_task("Documentar endpoints".to_string(), None, None)
+            .add_task("Documentar endpoints.".to_string(), None, None)
             .unwrap();
         service
             .add_task("Testear API".to_string(), None, None)

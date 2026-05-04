@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{
-        Priority, Prog, Status, priority_to_str, status_to_str, str_to_priority, str_to_status,
+    use crate::{
+        infrastructure::io::mappers::{
+            priority_to_str, status_to_str, str_to_priority, str_to_status,
+        },
+        prelude::{Priority, Progress, Status},
     };
 
     // ── priority_to_str ───────────────────────────────────────────────────────
@@ -117,17 +120,17 @@ mod tests {
         }
     }
 
-    // ── Prog ──────────────────────────────────────────────────────────────
+    // ── Progress ──────────────────────────────────────────────────────────────
 
     #[test]
     fn progress_elapsed_is_non_negative() {
-        let p = Prog::new();
+        let p = Progress::new();
         assert!(p.elapsed_secs() >= 0.0);
     }
 
     #[test]
     fn progress_elapsed_increases_over_time() {
-        let p = Prog::new();
+        let p = Progress::new();
         let t1 = p.elapsed_secs();
         std::thread::sleep(std::time::Duration::from_millis(10));
         let t2 = p.elapsed_secs();
@@ -136,8 +139,8 @@ mod tests {
 
     #[test]
     fn progress_default_same_as_new() {
-        let p1 = Prog::new();
-        let p2 = Prog::default();
+        let p1 = Progress::new();
+        let p2 = Progress::default();
         assert!(p1.elapsed_secs() >= 0.0);
         assert!(p2.elapsed_secs() >= 0.0);
     }

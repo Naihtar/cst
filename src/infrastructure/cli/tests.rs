@@ -1,37 +1,43 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{
-        Decision, Priority, SortField, SortOrder, Status, Store, accept, accept_flag,
-        get_modifiers, parse_id, parse_ids, to_filter, to_priority, to_priority_char, to_sort,
-        to_sort_field, to_sort_order, to_status, to_status_char,
+    use crate::{
+        infrastructure::cli::{
+            mappers::{
+                accept, accept_flag, char_to_priority, char_to_sort_field, char_to_sort_order,
+                char_to_status, extract_modifiers, modifiers_to_filter, modifiers_to_priority,
+                modifiers_to_sort, modifiers_to_status, parse_id, parse_ids,
+            },
+            ui::messages::confirm::Decision,
+        },
+        prelude::{Priority, Settings, SortField, SortOrder, Status},
     };
 
     fn setup() {
-        Store::init_for_tests();
+        Settings::init_for_tests();
     }
 
-    // ── to_priority_char ──────────────────────────────────────────────────────
+    // ── char_to_priority ──────────────────────────────────────────────────────
 
     #[test]
     fn char_to_priority_maps_correctly() {
         setup();
-        assert_eq!(to_priority_char('l'), Some(Priority::Low));
-        assert_eq!(to_priority_char('m'), Some(Priority::Medium));
-        assert_eq!(to_priority_char('h'), Some(Priority::High));
-        assert_eq!(to_priority_char('u'), Some(Priority::Urgent));
-        assert_eq!(to_priority_char('x'), None);
+        assert_eq!(char_to_priority('l'), Some(Priority::Low));
+        assert_eq!(char_to_priority('m'), Some(Priority::Medium));
+        assert_eq!(char_to_priority('h'), Some(Priority::High));
+        assert_eq!(char_to_priority('u'), Some(Priority::Urgent));
+        assert_eq!(char_to_priority('x'), None);
     }
 
-    // ── to_status_char ────────────────────────────────────────────────────────
+    // ── char_to_status ────────────────────────────────────────────────────────
 
     #[test]
     fn char_to_status_maps_correctly() {
         setup();
-        assert_eq!(to_status_char('t'), Some(Status::Todo));
-        assert_eq!(to_status_char('w'), Some(Status::InProgress));
-        assert_eq!(to_status_char('b'), Some(Status::Blocked));
-        assert_eq!(to_status_char('d'), Some(Status::Done));
-        assert_eq!(to_status_char('x'), None);
+        assert_eq!(char_to_status('t'), Some(Status::Todo));
+        assert_eq!(char_to_status('w'), Some(Status::InProgress));
+        assert_eq!(char_to_status('b'), Some(Status::Blocked));
+        assert_eq!(char_to_status('d'), Some(Status::Done));
+        assert_eq!(char_to_status('x'), None);
     }
 
     // ── char_to_sort_field ────────────────────────────────────────────────────
@@ -39,10 +45,10 @@ mod tests {
     #[test]
     fn char_to_sort_field_maps_correctly() {
         setup();
-        assert_eq!(to_sort_field('p'), Some(SortField::Priority));
-        assert_eq!(to_sort_field('s'), Some(SortField::Status));
-        assert_eq!(to_sort_field('i'), Some(SortField::Id));
-        assert_eq!(to_sort_field('x'), None);
+        assert_eq!(char_to_sort_field('p'), Some(SortField::Priority));
+        assert_eq!(char_to_sort_field('s'), Some(SortField::Status));
+        assert_eq!(char_to_sort_field('i'), Some(SortField::Id));
+        assert_eq!(char_to_sort_field('x'), None);
     }
 
     // ── char_to_sort_order ────────────────────────────────────────────────────
@@ -50,9 +56,9 @@ mod tests {
     #[test]
     fn char_to_sort_order_maps_correctly() {
         setup();
-        assert_eq!(to_sort_order('+'), Some(SortOrder::Asc));
-        assert_eq!(to_sort_order('-'), Some(SortOrder::Desc));
-        assert_eq!(to_sort_order('x'), None);
+        assert_eq!(char_to_sort_order('+'), Some(SortOrder::Asc));
+        assert_eq!(char_to_sort_order('-'), Some(SortOrder::Desc));
+        assert_eq!(char_to_sort_order('x'), None);
     }
 
     // ── extract_modifiers ─────────────────────────────────────────────────────
@@ -60,15 +66,15 @@ mod tests {
     #[test]
     fn extract_modifiers_returns_chars_after_uppercase() {
         setup();
-        assert_eq!(get_modifiers("-Rhm"), vec!['h', 'm']);
-        assert_eq!(get_modifiers("-Lp+"), vec!['p', '+']);
-        assert_eq!(get_modifiers("-L"), Vec::<char>::new());
+        assert_eq!(extract_modifiers("-Rhm"), vec!['h', 'm']);
+        assert_eq!(extract_modifiers("-Lp+"), vec!['p', '+']);
+        assert_eq!(extract_modifiers("-L"), Vec::<char>::new());
     }
 
     #[test]
     fn extract_modifiers_ignores_non_alpha() {
         setup();
-        assert_eq!(get_modifiers("-R123"), Vec::<char>::new());
+        assert_eq!(extract_modifiers("-R123"), Vec::<char>::new());
     }
 
     // ── modifiers_to_priority ─────────────────────────────────────────────────
@@ -76,9 +82,9 @@ mod tests {
     #[test]
     fn modifiers_to_priority_finds_first_match() {
         setup();
-        assert_eq!(to_priority(&['h']), Some(Priority::High));
-        assert_eq!(to_priority(&['u']), Some(Priority::Urgent));
-        assert_eq!(to_priority(&['x']), None);
+        assert_eq!(modifiers_to_priority(&['h']), Some(Priority::High));
+        assert_eq!(modifiers_to_priority(&['u']), Some(Priority::Urgent));
+        assert_eq!(modifiers_to_priority(&['x']), None);
     }
 
     // ── modifiers_to_status ───────────────────────────────────────────────────
@@ -86,9 +92,9 @@ mod tests {
     #[test]
     fn modifiers_to_status_finds_first_match() {
         setup();
-        assert_eq!(to_status(&['d']), Some(Status::Done));
-        assert_eq!(to_status(&['w']), Some(Status::InProgress));
-        assert_eq!(to_status(&['x']), None);
+        assert_eq!(modifiers_to_status(&['d']), Some(Status::Done));
+        assert_eq!(modifiers_to_status(&['w']), Some(Status::InProgress));
+        assert_eq!(modifiers_to_status(&['x']), None);
     }
 
     // ── modifiers_to_sort ─────────────────────────────────────────────────────
@@ -96,7 +102,7 @@ mod tests {
     #[test]
     fn modifiers_to_sort_default_order_is_asc() {
         setup();
-        let sort = to_sort(&['p']);
+        let sort = modifiers_to_sort(&['p']);
         assert_eq!(sort.field, Some(SortField::Priority));
         assert_eq!(sort.order, SortOrder::Asc);
     }
@@ -104,7 +110,7 @@ mod tests {
     #[test]
     fn modifiers_to_sort_desc_order() {
         setup();
-        let sort = to_sort(&['s', '-']);
+        let sort = modifiers_to_sort(&['s', '-']);
         assert_eq!(sort.field, Some(SortField::Status));
         assert_eq!(sort.order, SortOrder::Desc);
     }
@@ -112,7 +118,7 @@ mod tests {
     #[test]
     fn modifiers_to_sort_no_field() {
         setup();
-        let sort = to_sort(&[]);
+        let sort = modifiers_to_sort(&[]);
         assert_eq!(sort.field, None);
         assert_eq!(sort.order, SortOrder::Asc);
     }
@@ -122,7 +128,7 @@ mod tests {
     #[test]
     fn modifiers_to_filter_builds_correctly() {
         setup();
-        let filter = to_filter(&['h', 'd'], Some("api".to_string()), 0);
+        let filter = modifiers_to_filter(&['h', 'd'], Some("api".to_string()), 0);
         assert_eq!(filter.priority, Some(Priority::High));
         assert_eq!(filter.status, Some(Status::Done));
         assert_eq!(filter.word, Some("api".to_string()));
@@ -132,7 +138,7 @@ mod tests {
     #[test]
     fn modifiers_to_filter_no_modifiers() {
         setup();
-        let filter = to_filter(&[], None, 2);
+        let filter = modifiers_to_filter(&[], None, 2);
         assert_eq!(filter.priority, None);
         assert_eq!(filter.status, None);
         assert_eq!(filter.word, None);

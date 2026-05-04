@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod tests {
     use crate::prelude::{
-        Builder, Filter, NewTask, Priority, Repository, Sort, SortField, SortOrder, SqliteTR,
-        Status, Store,
+        Filter, NewTask, Priority, Settings, Sort, SortField, SortOrder, SqliteTaskRepository,
+        Status, TaskBuilder, TaskRepository,
     };
 
-    fn setup() -> SqliteTR {
-        Store::init_for_tests();
-        SqliteTR::new(":memory:").unwrap()
+    fn setup() -> SqliteTaskRepository {
+        Settings::init_for_tests();
+        SqliteTaskRepository::new(":memory:").unwrap()
     }
 
     fn make_task(info: &str, priority: Priority, status: Status) -> NewTask {
-        Builder::new()
+        TaskBuilder::new()
             .information(info.to_string())
             .priority(Some(priority))
             .status(Some(status))
@@ -159,7 +159,7 @@ mod tests {
             .create(&make_task("Original", Priority::Low, Status::Todo))
             .unwrap();
         let existing = repo.read_by_id(id).unwrap().unwrap();
-        let updated = Builder::from_task(&existing)
+        let updated = TaskBuilder::from_task(&existing)
             .information_update(Some("Updated".to_string()))
             .priority(Some(Priority::Urgent))
             .status(Some(Status::Done))
@@ -299,7 +299,7 @@ mod tests {
         repo.create(&make_task("Crear API REST", Priority::Low, Status::Todo))
             .unwrap();
         repo.create(&make_task(
-            "Documentar endpoints",
+            "Documentar endpoints.",
             Priority::Low,
             Status::Todo,
         ))

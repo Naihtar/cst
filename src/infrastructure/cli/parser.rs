@@ -1,11 +1,17 @@
 use std::env;
 
-use crate::prelude::{
-    CfgCmd, CliErr, Cmd, Decision, Err, Mode, accept_flag, get_modifiers, parse_id, parse_ids,
-    to_config_char, to_filter, to_priority, to_sort, to_status,
+use crate::{
+    infrastructure::cli::{
+        mappers::{
+            accept_flag, char_to_config, extract_modifiers, modifiers_to_filter,
+            modifiers_to_priority, modifiers_to_sort, modifiers_to_status, parse_id, parse_ids,
+        },
+        ui::messages::confirm::Decision,
+    },
+    prelude::{CSTError, CliErr, ConfigCommand, ImportMode, TaskCommand},
 };
 
-/// Parses CLI arguments from `env::args` into a [`Cmd`].
+/// Parses CLI arguments from `env::args` into a [`TaskCommand`].
 pub struct CliParser {
     args: Vec<String>,
 }
@@ -24,12 +30,12 @@ impl CliParser {
         Self::default()
     }
 
-    /// Parses the collected arguments into a [`Cmd`].
+    /// Parses the collected arguments into a [`TaskCommand`].
     ///
-    /// Returns [`Cmd::Help`] if no arguments are provided.
-    pub fn parse(&self) -> Result<Cmd, Err> {
+    /// Returns [`TaskCommand::Help`] if no arguments are provided.
+    pub fn parse(&self) -> Result<TaskCommand, CSTError> {
         let Some(_) = self.args.first() else {
-            return Ok(Cmd::Help);
+            return Ok(TaskCommand::Help);
         };
 
         match self.find_command_char()? {
@@ -44,27 +50,27 @@ impl CliParser {
             'X' => self.parse_clear(),
             'C' => self.parse_config(),
             'I' => self.parse_import(),
-            'J' => self.parse_export_with_flag(|output| Cmd::ExportJson { output }),
-            'Y' => self.parse_export_with_flag(|output| Cmd::ExportYaml { output }),
-            'T' => self.parse_export_with_flag(|output| Cmd::ExportToml { output }),
-            'H' => Ok(Cmd::Help),
-            'S' => Ok(Cmd::ExportCSV {
+            'J' => self.parse_export_with_flag(|output| TaskCommand::ExportJson { output }),
+            'Y' => self.parse_export_with_flag(|output| TaskCommand::ExportYaml { output }),
+            'T' => self.parse_export_with_flag(|output| TaskCommand::ExportToml { output }),
+            'H' => Ok(TaskCommand::Help),
+            'S' => Ok(TaskCommand::ExportCSV {
                 output: self.positional_args().first().map(|s| s.to_string()),
             }),
-            'M' => Ok(Cmd::ExportMarkdown {
+            'M' => Ok(TaskCommand::ExportMarkdown {
                 output: self.positional_args().first().map(|s| s.to_string()),
             }),
-            'E' => Ok(Cmd::ExportExcel {
+            'E' => Ok(TaskCommand::ExportExcel {
                 output: self.positional_args().first().map(|s| s.to_string()),
             }),
-            'Z' => Ok(Cmd::Undo),
-            'V' => Ok(Cmd::Version),
+            'Z' => Ok(TaskCommand::Undo),
+            'V' => Ok(TaskCommand::Version),
             c => Err(CliErr::UnknownCommand(c))?,
         }
     }
 
     /// Finds the uppercase command letter in the flag arguments.
-    fn find_command_char(&self) -> Result<char, Err> {
+    fn find_command_char(&self) -> Result<char, CSTError> {
         Ok(self
             .args
             .iter()
@@ -95,19 +101,19 @@ impl CliParser {
     /// Extracts a confirmation decision from the command flag modifiers, if present.
     fn find_confirmation(&self) -> Option<Decision> {
         self.find_command_flag()
-            .map(get_modifiers)
+            .map(extract_modifiers)
             .and_then(|m| m.iter().find_map(|&c| accept_flag(c)))
     }
 
     /// Extracts modifier characters from the command flag.
-    fn modifiers(&self) -> Result<Vec<char>, Err> {
+    fn modifiers(&self) -> Result<Vec<char>, CSTError> {
         Ok(self
             .find_command_flag()
-            .map(get_modifiers)
+            .map(extract_modifiers)
             .ok_or(CliErr::MissingCommand)?)
     }
 
-    fn parse_add(&self) -> Result<Cmd, Err> {
+    fn parse_add(&self) -> Result<TaskCommand, CSTError> {
         let modifiers = self.modifiers()?;
         let information = self
             .positional_args()
@@ -115,36 +121,36 @@ impl CliParser {
             .ok_or(CliErr::MissingArgument('A'))?
             .to_string();
 
-        Ok(Cmd::Add {
+        Ok(TaskCommand::Add {
             information,
-            priority: to_priority(&modifiers),
-            status: to_status(&modifiers),
+            priority: modifiers_to_priority(&modifiers),
+            status: modifiers_to_status(&modifiers),
         })
     }
 
-    fn parse_get(&self) -> Result<Cmd, Err> {
+    fn parse_get(&self) -> Result<TaskCommand, CSTError> {
         let arg = self
             .positional_args()
             .first()
             .ok_or(CliErr::MissingArgument('G'))?
             .to_string();
-        Ok(Cmd::Get {
+        Ok(TaskCommand::Get {
             id: parse_id(&arg)?,
         })
     }
 
-    fn parse_list(&self) -> Result<Cmd, Err> {
+    fn parse_list(&self) -> Result<TaskCommand, CSTError> {
         let modifiers = self.modifiers()?;
-        Ok(Cmd::List(to_sort(&modifiers)))
+        Ok(TaskCommand::List(modifiers_to_sort(&modifiers)))
     }
 
-    fn parse_paged(&self) -> Result<Cmd, Err> {
+    fn parse_paged(&self) -> Result<TaskCommand, CSTError> {
         let modifiers = self.modifiers()?;
         let page = parse_page(&self.positional_args());
-        Ok(Cmd::Paged(to_sort(&modifiers), page))
+        Ok(TaskCommand::Paged(modifiers_to_sort(&modifiers), page))
     }
 
-    fn parse_done(&self) -> Result<Cmd, Err> {
+    fn parse_done(&self) -> Result<TaskCommand, CSTError> {
         let arg = self
             .positional_args()
             .first()
@@ -152,17 +158,17 @@ impl CliParser {
             .to_string();
 
         if arg.contains(',') {
-            Ok(Cmd::DoneMany {
+            Ok(TaskCommand::DoneMany {
                 ids: parse_ids(&arg)?,
             })
         } else {
-            Ok(Cmd::Done {
+            Ok(TaskCommand::Done {
                 id: parse_id(&arg)?,
             })
         }
     }
 
-    fn parse_remove(&self) -> Result<Cmd, Err> {
+    fn parse_remove(&self) -> Result<TaskCommand, CSTError> {
         let arg = self
             .positional_args()
             .first()
@@ -170,19 +176,19 @@ impl CliParser {
             .to_string();
 
         if arg.contains(',') {
-            Ok(Cmd::RemoveMany {
+            Ok(TaskCommand::RemoveMany {
                 ids: parse_ids(&arg)?,
                 confirmed: self.find_confirmation(),
             })
         } else {
-            Ok(Cmd::Remove {
+            Ok(TaskCommand::Remove {
                 id: parse_id(&arg)?,
                 confirmed: self.find_confirmation(),
             })
         }
     }
 
-    fn parse_update(&self) -> Result<Cmd, Err> {
+    fn parse_update(&self) -> Result<TaskCommand, CSTError> {
         let modifiers = self.modifiers()?;
         let positional = self.positional_args();
 
@@ -191,45 +197,47 @@ impl CliParser {
             .ok_or(CliErr::MissingArgument('U'))?;
 
         if id_str.contains(',') {
-            Ok(Cmd::UpdateMany {
+            Ok(TaskCommand::UpdateMany {
                 ids: parse_ids(id_str)?,
-                priority: to_priority(&modifiers),
-                status: to_status(&modifiers),
+                priority: modifiers_to_priority(&modifiers),
+                status: modifiers_to_status(&modifiers),
             })
         } else {
-            Ok(Cmd::Update {
+            Ok(TaskCommand::Update {
                 id: parse_id(id_str)?,
                 information: rest.first().map(|s| s.to_string()),
-                priority: to_priority(&modifiers),
-                status: to_status(&modifiers),
+                priority: modifiers_to_priority(&modifiers),
+                status: modifiers_to_status(&modifiers),
             })
         }
     }
 
-    fn parse_filter(&self) -> Result<Cmd, Err> {
+    fn parse_filter(&self) -> Result<TaskCommand, CSTError> {
         let modifiers = self.modifiers()?;
         let positional = self.positional_args();
         let word = parse_word(&positional);
         let page = parse_page(&positional);
-        Ok(Cmd::Filter(to_filter(&modifiers, word, page)))
+        Ok(TaskCommand::Filter(modifiers_to_filter(
+            &modifiers, word, page,
+        )))
     }
 
-    fn parse_clear(&self) -> Result<Cmd, Err> {
-        Ok(Cmd::Clear {
+    fn parse_clear(&self) -> Result<TaskCommand, CSTError> {
+        Ok(TaskCommand::Clear {
             confirmed: self.find_confirmation(),
         })
     }
 
-    fn parse_config(&self) -> Result<Cmd, Err> {
+    fn parse_config(&self) -> Result<TaskCommand, CSTError> {
         let modifiers = self.modifiers()?;
 
         let config = modifiers
             .iter()
-            .find_map(|&c| to_config_char(c))
+            .find_map(|&c| char_to_config(c))
             .ok_or(CliErr::MissingArgument('C'));
 
         match config {
-            Err(_) => Ok(Cmd::Config(CfgCmd::Show)),
+            Err(_) => Ok(TaskCommand::Config(ConfigCommand::Show)),
             Ok(config) => {
                 let value = self
                     .positional_args()
@@ -238,18 +246,18 @@ impl CliParser {
                     .to_string();
 
                 let command = match config {
-                    CfgCmd::SetLanguage(_) => CfgCmd::SetLanguage(value),
-                    CfgCmd::SetDB(_) => CfgCmd::SetDB(value),
-                    CfgCmd::Show => CfgCmd::Show,
+                    ConfigCommand::SetLanguage(_) => ConfigCommand::SetLanguage(value),
+                    ConfigCommand::SetDB(_) => ConfigCommand::SetDB(value),
+                    ConfigCommand::Show => ConfigCommand::Show,
                 };
 
-                Ok(Cmd::Config(command))
+                Ok(TaskCommand::Config(command))
             }
         }
     }
 
     /// Parses an import command, inferring the format from modifiers or file extension.
-    fn parse_import(&self) -> Result<Cmd, Err> {
+    fn parse_import(&self) -> Result<TaskCommand, CSTError> {
         let path = self
             .positional_args()
             .first()
@@ -259,31 +267,31 @@ impl CliParser {
         let modifiers = self.modifiers().unwrap_or_default();
 
         let mode = if modifiers.contains(&'d') {
-            Mode::DryRun
+            ImportMode::DryRun
         } else if modifiers.contains(&'r') {
-            Mode::Restore
+            ImportMode::Restore
         } else {
-            Mode::Append
+            ImportMode::Append
         };
 
         let confirmed = self.find_confirmation();
 
         if modifiers.contains(&'j') {
-            return Ok(Cmd::ImportJson {
+            return Ok(TaskCommand::ImportJson {
                 path,
                 mode,
                 confirmed,
             });
         }
         if modifiers.contains(&'a') {
-            return Ok(Cmd::ImportYaml {
+            return Ok(TaskCommand::ImportYaml {
                 path,
                 mode,
                 confirmed,
             });
         }
         if modifiers.contains(&'t') {
-            return Ok(Cmd::ImportToml {
+            return Ok(TaskCommand::ImportToml {
                 path,
                 mode,
                 confirmed,
@@ -291,22 +299,22 @@ impl CliParser {
         }
 
         match path.rsplit('.').next().map(|e| e.to_lowercase()).as_deref() {
-            Some("json") => Ok(Cmd::ImportJson {
+            Some("json") => Ok(TaskCommand::ImportJson {
                 path,
                 mode,
                 confirmed,
             }),
-            Some("yaml") | Some("yml") => Ok(Cmd::ImportYaml {
+            Some("yaml") | Some("yml") => Ok(TaskCommand::ImportYaml {
                 path,
                 mode,
                 confirmed,
             }),
-            Some("toml") => Ok(Cmd::ImportToml {
+            Some("toml") => Ok(TaskCommand::ImportToml {
                 path,
                 mode,
                 confirmed,
             }),
-            _ => Ok(Cmd::Import {
+            _ => Ok(TaskCommand::Import {
                 path,
                 mode,
                 confirmed,
@@ -314,9 +322,9 @@ impl CliParser {
         }
     }
 
-    fn parse_export_with_flag<F>(&self, f: F) -> Result<Cmd, Err>
+    fn parse_export_with_flag<F>(&self, f: F) -> Result<TaskCommand, CSTError>
     where
-        F: Fn(Option<String>) -> Cmd,
+        F: Fn(Option<String>) -> TaskCommand,
     {
         Ok(f(self.positional_args().first().map(|s| s.to_string())))
     }

@@ -1,4 +1,4 @@
-use crate::prelude::{ConfigErr, Err};
+use crate::prelude::{CSTError, ConfigErr};
 
 /// Supported UI languages.
 pub enum Language {
@@ -17,7 +17,7 @@ impl Language {
 }
 
 impl TryFrom<String> for Language {
-    type Error = Err;
+    type Error = CSTError;
 
     /// Parses a language code string into a [`Language`] variant.
     ///

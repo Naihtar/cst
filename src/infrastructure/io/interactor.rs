@@ -3,23 +3,23 @@ use std::{
     path::Path,
 };
 
-use crate::prelude::{CliErr, Err, FileFormat, Store};
+use crate::prelude::{CSTError, CliErr, FileFormat, Settings};
 
 /// Prompts the user for a filename and resolves it to an absolute path.
 ///
 /// Appends the format's extension if not already present. Relative paths
 /// are resolved against `base_dir`.
-pub fn ask_filename(format: FileFormat, base_dir: &Path) -> Result<String, Err> {
-    print!("{}", Store::t("ui.filename"));
+pub fn ask_filename(format: FileFormat, base_dir: &Path) -> Result<String, CSTError> {
+    print!("{}", Settings::t("ui.filename"));
     std::io::stdout()
         .flush()
-        .map_err(|_| Err::from(CliErr::StdoutFlushError))?;
+        .map_err(|_| CSTError::from(CliErr::StdoutFlushError))?;
 
     let name = stdin()
         .lines()
         .next()
-        .ok_or(Err::from(CliErr::EmptyInputStream))?
-        .map_err(|_| Err::from(CliErr::StdinReadError))?;
+        .ok_or(CSTError::from(CliErr::EmptyInputStream))?
+        .map_err(|_| CSTError::from(CliErr::StdinReadError))?;
 
     let filename = if name.ends_with(format.extension()) {
         name
