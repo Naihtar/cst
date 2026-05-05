@@ -143,10 +143,8 @@ pub fn flatten_yaml(value: &serde_yaml::Value) -> HashMap<String, String> {
                     }
                 }
             }
-            serde_yaml::Value::String(s) => {
-                if !prefix.is_empty() {
-                    result.insert(prefix, s.clone());
-                }
+            serde_yaml::Value::String(s) if !prefix.is_empty() => {
+                result.insert(prefix, s.clone());
             }
             serde_yaml::Value::Number(n) => {
                 result.insert(prefix, n.to_string());
